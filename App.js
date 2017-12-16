@@ -14,10 +14,11 @@ export default class App extends React.Component {
     const UID = '';
     const CLIENT = '';
     this.cable = ActionCable.createConsumer(`${BASE_URL}/socket/?access-token=${ACCESS_TOKEN}&uid=${UID}&client=${CLIENT}`);
-    this.momentsSubscription = this.cable.subscriptions.create(
+    this.subscription = this.cable.subscriptions.create(
       {
-        channel: 'MomentsChannel',
-        moment: 3,
+        channel: 'UsersChannel',
+        latitude: 47.794952,
+        longitude: 13.047461
       },
       {
         connected: () => this.setState({ connected: true }),
@@ -32,9 +33,24 @@ export default class App extends React.Component {
   }
 
   componentWillUnmount() {
-    if(this.momentsSubscription) {
-      this.cable.subscriptions.remove(this.momentsSubscription);
+    if(this.subscription) {
+      this.cable.subscriptions.remove(this.subscription);
     }
+  }
+
+  disconnect = () => {
+    alert(this.subscription);
+    if(this.subscription) {
+      this.cable.subscriptions.remove(this.subscription);
+    }
+  }
+
+  sendLocation = () => {
+    this.subscription.send({
+      action: 'location_update',
+      latitude: 47.794952,
+      longitude: 13.047461
+    });
   }
 
   render() {
@@ -43,6 +59,8 @@ export default class App extends React.Component {
     });
     return (
       <View style={styles.container}>
+        <Button title="Send Location" onPress={this.sendLocation} />
+        <Button title="Disconnect now" onPress={this.disconnect} />
         <Text>Socket Status: {this.state.connected ? 'connected' : 'disconnected'}</Text>
         {messages}
       </View>
